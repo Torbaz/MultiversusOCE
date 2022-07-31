@@ -27,7 +27,7 @@ namespace BasicBot
 
             Console.WriteLine("Hi");
 
-            discordClient = new DiscordSocketClient(new DiscordSocketConfig() { LogLevel = LogSeverity.Verbose, GatewayIntents = GatewayIntents.All, AlwaysDownloadUsers = true, MessageCacheSize = 99999}) ;
+            discordClient = new DiscordSocketClient(new DiscordSocketConfig() { LogLevel = LogSeverity.Verbose, GatewayIntents = GatewayIntents.All, AlwaysDownloadUsers = true}) ;
 
             
             var token = GetSettings().BotToken;
