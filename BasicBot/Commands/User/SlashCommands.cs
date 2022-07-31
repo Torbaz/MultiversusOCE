@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.Commands;
 using System;
 using System.Collections.Generic;
@@ -111,6 +111,62 @@ namespace BasicBot.Commands
             things[msg.Id] = gamething;
 
             await gamething.BuildFirst().UpdateMessage(msg);
+        }
+
+        [SlashCommand("set-tournament-category", "Set the category for auto created channels.")]
+        public async Task setCategory(ulong categoryId)
+        {
+            var gld = Guild.GetDiscordOrMake(Context.Guild);
+
+            if (Context.Guild.CategoryChannels.Where(c => c.Id == categoryId).ToArray().Count() == 1)
+            {
+                gld.tournamentCategory = categoryId;
+            }
+            else
+            {
+                await Context.Interaction.RespondAsync("Failed to set tournament category.", ephemeral: true);
+                return;
+            }
+
+
+            await Context.Interaction.RespondAsync("Set tournament category.", ephemeral: true);
+        }
+
+        [SlashCommand("new-game", "Create a game with the new system.")]
+        public async Task newGame(SocketUser enemy)
+        {
+            var gld = Guild.GetDiscordOrMake(Context.Guild);
+
+            //if (enemy.Id == Context.User.Id)
+            //{
+            //await Context.Interaction.RespondAsync("Cannot challenge yourself.", ephemeral: true);
+            //return;
+            //}
+            //else if (enemy.IsBot)
+            // {
+            //    await Context.Interaction.RespondAsync("Cannot challenge a bot.", ephemeral: true);
+            //    return;
+            //}
+
+            if(Context.Guild.CategoryChannels.Where(c => c.Id == gld.tournamentCategory).ToArray().Count() != 1)
+            {
+                await Context.Interaction.RespondAsync("The server administrator has set an invalid tournament category. Please contact an admin.", ephemeral: true);
+                return;
+            }
+
+            var allowedPermissions = new OverwritePermissions(viewChannel: PermValue.Allow, sendMessages: PermValue.Allow);
+            var deniedPermissions = new OverwritePermissions(viewChannel: PermValue.Deny, sendMessages: PermValue.Deny);
+
+            var channel = await Context.Guild.CreateTextChannelAsync($"{Context.User.Username} vs {enemy.Username}", x =>
+            {
+                x.CategoryId = gld.tournamentCategory;
+
+                x.PermissionOverwrites = new Overwrite[] {new Overwrite(Context.User.Id, PermissionTarget.User, allowedPermissions),
+                new Overwrite(enemy.Id, PermissionTarget.User, allowedPermissions),
+                new Overwrite(Context.Guild.EveryoneRole.Id, PermissionTarget.Role, deniedPermissions)};
+            });
+
+            await Context.Interaction.RespondAsync("Game channel created: " + channel.Mention, ephemeral: true);
         }
     }
 }

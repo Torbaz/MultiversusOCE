@@ -26,6 +26,9 @@ namespace BasicBot.Settings
         [JsonProperty]
         public Dictionary<string, List<string>> Maps = new Dictionary<string, List<string>>();
 
+        [JsonProperty]
+        public ulong tournamentCategory;
+
         public class StaffRoles
         {
             [JsonProperty]
