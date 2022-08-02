@@ -1,32 +1,20 @@
-using Discord;
-using Discord.Commands;
-using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using static BasicBot.Services.MessageHandlerService;
 using System.Linq;
-using System.Xml;
-using Discord.WebSocket;
-using static BasicBot.Handler.User;
-using Discord.Interactions;
-using SummaryAttribute = Discord.Interactions.SummaryAttribute;
-using static BasicBot.Commands.ModalCommand;
-using BasicBot.Settings;
+using System.Threading.Tasks;
 using BasicBot.Handler;
-using static BasicBot.Commands.ModalCommand;
-using ContextType = Discord.Interactions.ContextType;
-using Guild = BasicBot.Handler.Guild;
+using BasicBot.MonarkTypes;
+using Discord;
+using Discord.Interactions;
+using Discord.WebSocket;
 using static BasicBot.Handler.Multiversus;
-using static BasicBot.MonarkTypes.Message;
 
 namespace BasicBot.Commands
 {
-    //[DontAutoRegister()]
+//[DontAutoRegister()]
     public class SlashCommand : InteractionModuleBase<SocketInteractionContext<SocketSlashCommand>>
     {
         [SlashCommand("add-map-pool", "Map pools to be added")]
-        public async Task AddMapPool(string Name, List<string> Maps)//, )
+        public async Task AddMapPool(string Name, List<string> Maps) //, )
         {
             var gld = Guild.GetDiscordOrMake(Context.Guild);
             gld.Maps[Name] = Maps;
@@ -36,7 +24,7 @@ namespace BasicBot.Commands
         }
 
         [SlashCommand("remove-map-pool", "Map pools to be removed")]
-        public async Task RemoveMapPool(string Name)//, )
+        public async Task RemoveMapPool(string Name) //, )
         {
             var gld = Guild.GetDiscordOrMake(Context.Guild);
             if (!gld.Maps.ContainsKey(Name))
@@ -51,68 +39,6 @@ namespace BasicBot.Commands
             Guild.SaveGuilds();
         }
 
-
-        [SlashCommand("coinflip", "flip a coin betwen two users")]
-        public async Task flip(SocketUser user)//, )
-        {
-            if (BasicBot.Handler.Random.RandomBool())
-            {
-                await Context.Interaction.RespondAsync($"I Choose {user.Mention}");
-            }
-            else
-            {
-                await Context.Interaction.RespondAsync($"I Choose {Context.User}");
-            }
-
-        }
-
-        [SlashCommand("coinflip-game", "flip a coin betwen two users")]
-        public async Task flipgame(SocketUser user)//, )
-        {
-            SocketUser user1, user2;
-
-            if (BasicBot.Handler.Random.RandomBool())
-            {
-                user1 = user;
-                user2 = Context.User;
-            }
-            else
-            {
-                user2 = user;
-                user1 = Context.User;
-            }
-
-            MonarkMessage _msg = new MonarkMessage();
-            _msg.AddEmbed(new EmbedBuilder().WithTitle("Building..."));
-            await _msg.SendMessage(Context.Interaction, false);
-
-            var msg = await Context.Interaction.GetOriginalResponseAsync();
-
-            var gamething = new gamething(user1, user2, Context.Interaction, Context.Guild.Id);
-
-            things[msg.Id] = gamething;
-
-            await gamething.BuildFirst().UpdateMessage(msg);
-
-        }
-
-
-        [SlashCommand("game", "game")]
-        public async Task game(SocketUser user)//, )
-        {
-            MonarkMessage _msg = new MonarkMessage();
-            _msg.AddEmbed(new EmbedBuilder().WithTitle("Building..."));
-            await _msg.SendMessage(Context.Interaction, false);
-
-            var msg = await Context.Interaction.GetOriginalResponseAsync();
-
-            var gamething = new gamething(Context.User, user, Context.Interaction, Context.Guild.Id);
-
-            things[msg.Id] = gamething;
-
-            await gamething.BuildFirst().UpdateMessage(msg);
-        }
-
         [SlashCommand("set-tournament-category", "Set the category for auto created channels.")]
         public async Task setCategory(ulong categoryId)
         {
@@ -120,7 +46,8 @@ namespace BasicBot.Commands
 
             if (Context.Guild.CategoryChannels.Where(c => c.Id == categoryId).ToArray().Count() == 1)
             {
-                gld.tournamentCategory = categoryId;
+                gld.TournamentCategory = categoryId;
+                Guild.SaveGuilds();
             }
             else
             {
@@ -132,41 +59,81 @@ namespace BasicBot.Commands
             await Context.Interaction.RespondAsync("Set tournament category.", ephemeral: true);
         }
 
-        [SlashCommand("new-game", "Create a game with the new system.")]
-        public async Task newGame(SocketUser enemy)
+        [SlashCommand("game", "Create a game with the new system.")]
+        public async Task game(SocketUser enemy)
         {
             var gld = Guild.GetDiscordOrMake(Context.Guild);
 
-            //if (enemy.Id == Context.User.Id)
-            //{
-            //await Context.Interaction.RespondAsync("Cannot challenge yourself.", ephemeral: true);
-            //return;
-            //}
-            //else if (enemy.IsBot)
+            // if (enemy.Id == Context.User.Id)
             // {
-            //    await Context.Interaction.RespondAsync("Cannot challenge a bot.", ephemeral: true);
-            //    return;
-            //}
+            //     await Context.Interaction.RespondAsync("Cannot challenge yourself.", ephemeral: true);
+            //     return;
+            // }
 
-            if(Context.Guild.CategoryChannels.Where(c => c.Id == gld.tournamentCategory).ToArray().Count() != 1)
+            if (enemy.IsBot)
             {
-                await Context.Interaction.RespondAsync("The server administrator has set an invalid tournament category. Please contact an admin.", ephemeral: true);
+                await Context.Interaction.RespondAsync("Cannot challenge a bot.", ephemeral: true);
                 return;
             }
 
-            var allowedPermissions = new OverwritePermissions(viewChannel: PermValue.Allow, sendMessages: PermValue.Allow);
+            if (Context.Guild.CategoryChannels.Where(c => c.Id == gld.TournamentCategory).ToArray().Length != 1)
+            {
+                await Context.Interaction.RespondAsync(
+                    "The server administrator has set an invalid tournament category. Please contact an admin.",
+                    ephemeral: true);
+                return;
+            }
+
+            var allowedPermissions =
+                new OverwritePermissions(viewChannel: PermValue.Allow, sendMessages: PermValue.Allow);
             var deniedPermissions = new OverwritePermissions(viewChannel: PermValue.Deny, sendMessages: PermValue.Deny);
 
-            var channel = await Context.Guild.CreateTextChannelAsync($"{Context.User.Username} vs {enemy.Username}", x =>
-            {
-                x.CategoryId = gld.tournamentCategory;
+            var channel = await Context.Guild.CreateTextChannelAsync($"{Context.User.Username} vs {enemy.Username}",
+                x =>
+                {
+                    x.CategoryId = gld.TournamentCategory;
 
-                x.PermissionOverwrites = new Overwrite[] {new Overwrite(Context.User.Id, PermissionTarget.User, allowedPermissions),
-                new Overwrite(enemy.Id, PermissionTarget.User, allowedPermissions),
-                new Overwrite(Context.Guild.EveryoneRole.Id, PermissionTarget.Role, deniedPermissions)};
-            });
+                    x.PermissionOverwrites = new[]
+                    {
+                        new(Context.User.Id, PermissionTarget.User, allowedPermissions),
+                        new Overwrite(enemy.Id, PermissionTarget.User, allowedPermissions),
+                        new Overwrite(Context.Guild.EveryoneRole.Id, PermissionTarget.Role, deniedPermissions)
+                    };
+                });
 
             await Context.Interaction.RespondAsync("Game channel created: " + channel.Mention, ephemeral: true);
+
+            var _msg = new Message.MonarkMessage();
+            _msg.AddEmbed(new EmbedBuilder().WithTitle("Building..."));
+            var msg = await _msg.SendMessage(channel);
+
+            var gamething = new gamething(Context.Interaction.User, enemy, msg,
+                Context.Guild.Id);
+
+            things[msg.Id] = gamething;
+
+            await gamething.BuildFirst().UpdateMessage(msg);
+        }
+
+        [SlashCommand("remove-channels", "Create a game with the new system.")]
+        public async Task removeChannels()
+        {
+            await Context.Interaction.RespondAsync("Deleting...", ephemeral: true);
+
+            things.Clear();
+
+            foreach (var category in Context.Guild.CategoryChannels)
+            {
+                if (category.Id == 1003163620680683530)
+                {
+                    foreach (var channel in category.Channels)
+                    {
+                        channel.DeleteAsync();
+                    }
+
+                    break;
+                }
+            }
         }
     }
 }
