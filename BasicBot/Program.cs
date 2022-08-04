@@ -5,8 +5,12 @@ using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using BasicBot.GraphQL;
+using BasicBot.Handler;
 using Microsoft.Extensions.Logging;
+using StrawberryShake;
 using static BasicBot.Handler.Settings;
 
 namespace BasicBot
@@ -23,8 +27,6 @@ namespace BasicBot
 
         public async Task MainAsync()
         {
-
-
             Console.WriteLine("Hi");
 
             discordClient = new DiscordSocketClient(new DiscordSocketConfig() { LogLevel = LogSeverity.Verbose, GatewayIntents = GatewayIntents.All, AlwaysDownloadUsers = true}) ;
@@ -43,7 +45,6 @@ namespace BasicBot
 
            
             await Task.Delay(-1);
-
         }
 
         private IServiceProvider ConfigureServices()

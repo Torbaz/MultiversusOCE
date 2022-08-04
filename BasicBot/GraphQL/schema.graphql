@@ -18,58 +18,58 @@ type Query {
   currentUser: User
 
   """Returns an entrant given its id"""
-  entrant(id: ID!): Entrant
+  entrant(id: Int!): Entrant
 
   """Returns an event given its id or slug"""
-  event(id: ID, slug: String): Event
+  event(id: Int, slug: String): Event
 
   """Returns a league given its id or slug"""
-  league(id: ID, slug: String): League
+  league(id: Int, slug: String): League
 
   """Paginated, filterable list of leagues"""
   leagues(query: LeagueQuery!): LeagueConnection
 
   """Returns a participant given its id"""
-  participant(id: ID!, isAdmin: Boolean): Participant
+  participant(id: Int!, isAdmin: Boolean): Participant
 
   """Returns a phase given its id"""
-  phase(id: ID): Phase
+  phase(id: Int): Phase
 
   """Returns a phase group given its id"""
-  phaseGroup(id: ID): PhaseGroup
+  phaseGroup(id: Int): PhaseGroup
 
   """Returns a player given an id"""
-  player(id: ID!): Player
+  player(id: Int!): Player
 
   """Returns a phase seed given its id"""
-  seed(id: ID): Seed
+  seed(id: Int): Seed
 
   """Returns a set given its id"""
-  set(id: ID!): Set
+  set(id: Int!): Set
 
   """A shop entity"""
-  shop(id: ID, slug: String): Shop
+  shop(id: Int, slug: String): Shop
 
   """Returns an stream given its id"""
-  stream(id: ID!): Streams
+  stream(id: Int!): Streams
 
   """Returns all the stream queues for a given tournament"""
-  streamQueue(tournamentId: ID!, includePlayerStreams: Boolean): [StreamQueue]
+  streamQueue(tournamentId: Int!, includePlayerStreams: Boolean): [StreamQueue]
 
   """Returns a team given its id"""
-  team(id: ID, slug: String, inviteCode: String): Team
+  team(id: Int, slug: String, inviteCode: String): Team
 
   """Returns a tournament given its id or slug"""
-  tournament(id: ID, slug: String): Tournament
+  tournament(id: Int, slug: String): Tournament
 
   """Paginated, filterable list of tournaments"""
   tournaments(query: TournamentQuery!): TournamentConnection
 
   """Returns a user given a user slug of the form user/abc123, or id"""
-  user(id: ID, slug: String): User
+  user(id: Int, slug: String): User
 
   """Returns a videogame given its id"""
-  videogame(id: ID, slug: String): Videogame
+  videogame(id: Int, slug: String): Videogame
 
   """Returns paginated list of videogames matching the search criteria."""
   videogames(query: VideogameQuery!): VideogameConnection
@@ -79,7 +79,7 @@ type Query {
 type User {
   """Authorizations to external services (i.e. Twitch, Twitter)"""
   authorizations(types: [SocialConnectionType]): [ProfileAuthorization]
-  id: ID
+  id: Int
   bio: String
 
   """Public facing user birthday that respects user publishing settings"""
@@ -135,7 +135,7 @@ enum SocialConnectionType {
 
 """An OAuth ProfileAuthorization object"""
 type ProfileAuthorization {
-  id: ID
+  id: Int
 
   """The id given by the external service"""
   externalId: String
@@ -155,7 +155,7 @@ type ProfileAuthorization {
 
 """A Stream object"""
 type Stream {
-  id: ID
+  id: Int
 
   """Whether the stream is currently live. May be slightly delayed."""
   isOnline: Boolean
@@ -209,7 +209,7 @@ input UserEventsPaginationQuery {
 }
 
 input UserEventsPaginationFilter {
-  videogameId: [ID]
+  videogameId: [Int]
   eventType: Int
   minEntrantCount: Int
   maxEntrantCount: Int
@@ -250,7 +250,7 @@ scalar JSON
 
 """An event in a tournament"""
 type Event {
-  id: ID
+  id: Int
 
   """How long before the event start will the check-in end (in seconds)"""
   checkInBuffer: Int
@@ -310,7 +310,7 @@ type Event {
     state: ActivityState
 
     """Optionally only return results for this phase"""
-    phaseId: ID
+    phaseId: Int
   ): [Phase]
 
   """TO settings for prizing"""
@@ -378,7 +378,7 @@ type Event {
   """The waves being used by the event"""
   waves(
     """Waves filtered by phaseId, returns all if not set."""
-    phaseId: ID
+    phaseId: Int
   ): [Wave]
 }
 
@@ -406,7 +406,7 @@ type EntrantConnection {
 
 """An entrant in an event"""
 type Entrant {
-  id: ID
+  id: Int
   event: Event
 
   """Entrant's seed number in the first phase of the event."""
@@ -471,7 +471,7 @@ enum SetSortType {
 
 input SetFilters {
   """Only return Sets for these Entrants"""
-  entrantIds: [ID]
+  entrantIds: [Int]
 
   """
   Only return Sets for this Entrant size. For example, to fetch 1v1 Sets only, filter by an entrantSize of 1
@@ -498,22 +498,22 @@ input SetFilters {
   location: SetFilterLocation
 
   """Only return Sets for these Participants"""
-  participantIds: [ID]
+  participantIds: [Int]
 
   """Only return Sets in these PhaseGroups"""
-  phaseGroupIds: [ID]
+  phaseGroupIds: [Int]
 
   """Only return Sets in these Phases"""
-  phaseIds: [ID]
+  phaseIds: [Int]
 
   """Only return Sets in these Events"""
-  eventIds: [ID]
+  eventIds: [Int]
 
   """Only return Sets in these Tournaments"""
-  tournamentIds: [ID]
+  tournamentIds: [Int]
 
   """Only return Sets for these Players"""
-  playerIds: [ID]
+  playerIds: [Int]
 
   """Only return Sets for these Rounds"""
   roundNumber: Int
@@ -521,8 +521,8 @@ input SetFilters {
   """Only returns Sets that are in these states"""
   state: [Int]
 
-  """Only return Sets that are assigned to these Station IDs"""
-  stationIds: [ID]
+  """Only return Sets that are assigned to these Station Ints"""
+  stationIds: [Int]
 
   """Only return Sets that are assigned to these Station numbers"""
   stationNumbers: [Int]
@@ -566,14 +566,14 @@ type SetConnection {
 
 """A set"""
 type Set {
-  id: ID
+  id: Int
 
   """The time this set was marked as completed"""
   completedAt: Timestamp
 
   """The time this set was created"""
   createdAt: Timestamp
-  displayScore(mainEntrantId: ID): String
+  displayScore(mainEntrantId: Int): String
 
   """Event that this set belongs to."""
   event: Event
@@ -636,7 +636,7 @@ type Set {
 
 """A game represents a single game within a set."""
 type Game {
-  id: ID
+  id: Int
   images(type: String): [Image]
   orderNum: Int
 
@@ -651,7 +651,7 @@ type Game {
 
 """An image"""
 type Image {
-  id: ID
+  id: Int
   height: Float
   ratio: Float
   type: String
@@ -661,7 +661,7 @@ type Image {
 
 """A selection for this game. i.e. character/stage selection, etc"""
 type GameSelection {
-  id: ID
+  id: Int
 
   """The entrant who this selection is for"""
   entrant: Entrant
@@ -678,7 +678,7 @@ type GameSelection {
 
 """A participant of a tournament; either a spectator or competitor"""
 type Participant {
-  id: ID
+  id: Int
 
   """If this participant was checked-in by admin"""
   checkedIn: Boolean
@@ -725,7 +725,7 @@ type Participant {
 
 """Name, address, etc"""
 type ContactInfo {
-  id: ID
+  id: Int
 
   """Participant City Name"""
   city: String
@@ -755,21 +755,21 @@ type ContactInfo {
 
 """A player"""
 type Player {
-  id: ID
+  id: Int
   gamerTag: String
   prefix: String
 
   """Most recent active & published rankings"""
-  rankings(limit: Int, videogameId: ID): [PlayerRank]
+  rankings(limit: Int, videogameId: Int): [PlayerRank]
 
   """Recent sets for this player."""
   recentSets(
     """Use this to get H2H history between two players"""
-    opponentId: ID
+    opponentId: Int
   ): [Set] @deprecated(reason: "Use the sets field instead.")
 
   """Recent standings"""
-  recentStandings(videogameId: ID): [Standing]
+  recentStandings(videogameId: Int): [Standing]
 
   """Set history for this player."""
   sets(
@@ -784,7 +784,7 @@ type Player {
 
 """A player's ranks"""
 type PlayerRank {
-  id: ID
+  id: Int
 
   """The player's placement on the ranking"""
   rank: Int
@@ -793,7 +793,7 @@ type PlayerRank {
 
 """A standing indicates the placement of something within a container."""
 type Standing {
-  id: ID
+  id: Int
 
   """
   The containing entity that contextualizes this standing. Event standings, for
@@ -826,7 +826,7 @@ union StandingContainer = Tournament | Event | PhaseGroup | Set
 
 """A tournament"""
 type Tournament {
-  id: ID
+  id: Int
   addrState: String
 
   """Admin-only view of admins for this tournament"""
@@ -936,12 +936,12 @@ type Tournament {
 }
 
 input EventFilter {
-  videogameId: [ID]
+  videogameId: [Int]
   type: [Int]
   published: Boolean
-  id: ID
+  id: Int
   slug: String
-  fantasyEventId: ID
+  fantasyEventId: Int
   fantasyRosterHash: String
 }
 
@@ -960,9 +960,9 @@ input ParticipantPaginationQuery {
 }
 
 input ParticipantPageFilter {
-  id: ID
-  ids: [ID]
-  eventIds: [ID]
+  id: Int
+  ids: [Int]
+  eventIds: [Int]
   search: PaginationSearchType
   gamerTag: String
   unpaid: Boolean
@@ -984,7 +984,7 @@ type StationsConnection {
 
 """Stations, such as a stream setup, at an event"""
 type Stations {
-  id: ID
+  id: Int
   canAutoAssign: Boolean
   clusterNumber: String
   clusterPrefix: Int
@@ -1012,7 +1012,7 @@ type StreamQueue {
 
 """Tournament Stream"""
 type Streams {
-  id: ID
+  id: Int
   enabled: Boolean
   followerCount: Int
   isOnline: Boolean
@@ -1053,17 +1053,17 @@ input TeamPaginationQuery {
 }
 
 input TeamPaginationFilter {
-  globalTeamId: ID
+  globalTeamId: Int
   eventState: ActivityState
-  eventId: ID
-  eventIds: [ID]
+  eventId: Int
+  eventIds: [Int]
   minEntrantCount: Int
   maxEntrantCount: Int
   search: PaginationSearchType
   type: Int
-  tournamentId: ID
+  tournamentId: Int
   memberStatus: [TeamMemberStatus]
-  videogameId: [ID]
+  videogameId: [Int]
   isLeague: Boolean
   upcoming: Boolean
   past: Boolean
@@ -1086,7 +1086,7 @@ enum ActivityState {
   READY
 
   """Activity is invalid"""
-  INVALID
+  INVALInt
 
   """Activity, like a set, has been called to start"""
   CALLED
@@ -1126,7 +1126,7 @@ type TeamConnection {
 
 """A team, either at the global level or within the context of an event"""
 interface Team {
-  id: ID
+  id: Int
 
   """
   Uniquely identifying token for team. Same as the hashed part of the slug
@@ -1141,7 +1141,7 @@ interface Team {
 
 """A member of a team"""
 type TeamMember {
-  id: ID
+  id: Int
   isAlternate: Boolean
   isCaptain: Boolean
 
@@ -1165,7 +1165,7 @@ enum TeamMemberType {
 
 """A wave in a tournament"""
 type Wave {
-  id: ID
+  id: Int
 
   """The Wave Identifier"""
   identifier: String
@@ -1176,7 +1176,7 @@ type Wave {
 
 """A group within a phase"""
 type PhaseGroup {
-  id: ID
+  id: Int
 
   """The bracket type of this group's phase."""
   bracketType: BracketType
@@ -1189,7 +1189,7 @@ type PhaseGroup {
   """
   firstRoundTime: Timestamp
   numRounds: Int
-  paginatedSeeds(query: SeedPaginationQuery!, eventId: ID): SeedConnection @deprecated(reason: "Please use 'seeds', which is now paginated")
+  paginatedSeeds(query: SeedPaginationQuery!, eventId: Int): SeedConnection @deprecated(reason: "Please use 'seeds', which is now paginated")
 
   """Paginated sets on this phaseGroup"""
   paginatedSets(
@@ -1212,7 +1212,7 @@ type PhaseGroup {
   seedMap: JSON
 
   """Paginated seeds for this phase group"""
-  seeds(query: SeedPaginationQuery!, eventId: ID): SeedConnection
+  seeds(query: SeedPaginationQuery!, eventId: Int): SeedConnection
 
   """Paginated sets on this phaseGroup"""
   sets(
@@ -1281,13 +1281,13 @@ input SeedPaginationQuery {
 }
 
 input SeedPageFilter {
-  id: ID
+  id: Int
   entrantName: String
   checkInState: [Int]
-  phaseGroupId: [ID]
-  eventCheckInGroupId: ID
-  phaseId: [ID]
-  eventId: ID
+  phaseGroupId: [Int]
+  eventCheckInGroupId: Int
+  phaseId: [Int]
+  eventId: Int
   search: PaginationSearchType
 }
 
@@ -1298,9 +1298,9 @@ type SeedConnection {
 
 """A seed for an entrant"""
 type Seed {
-  id: ID
+  id: Int
 
-  """Map of Participant ID to checked in boolean"""
+  """Map of Participant Int to checked in boolean"""
   checkedInParticipants: JSON
   entrant: Entrant
   groupSeedNum: Int
@@ -1321,7 +1321,7 @@ type Seed {
   """
   Entrant's win/loss record for this standing. Scores do not include byes.
   """
-  setRecordWithoutByes(phaseGroupId: ID!): JSON
+  setRecordWithoutByes(phaseGroupId: Int!): JSON
   standings(
     """
     The container of the standing groups to get standings for. If null, will return all standings.
@@ -1332,7 +1332,7 @@ type Seed {
 
 """A phase in an event"""
 type Phase {
-  id: ID
+  id: Int
 
   """The bracket type of this phase."""
   bracketType: BracketType
@@ -1351,7 +1351,7 @@ type Phase {
 
   """The number of seeds this phase contains."""
   numSeeds: Int
-  paginatedSeeds(query: SeedPaginationQuery!, eventId: ID): SeedConnection @deprecated(reason: "Please use 'seeds' instead")
+  paginatedSeeds(query: SeedPaginationQuery!, eventId: Int): SeedConnection @deprecated(reason: "Please use 'seeds' instead")
 
   """Phase groups under this phase, paginated"""
   phaseGroups(query: PhaseGroupPageQuery): PhaseGroupConnection
@@ -1360,7 +1360,7 @@ type Phase {
   phaseOrder: Int
 
   """Paginated seeds for this phase"""
-  seeds(query: SeedPaginationQuery!, eventId: ID): SeedConnection
+  seeds(query: SeedPaginationQuery!, eventId: Int): SeedConnection
 
   """Paginated sets for this Phase"""
   sets(
@@ -1383,13 +1383,13 @@ input PhaseGroupPageQuery {
   page: Int
   perPage: Int
   sortBy: String
-  entrantIds: [ID]
+  entrantIds: [Int]
   filter: PhaseGroupPageQueryFilter
 }
 
 input PhaseGroupPageQueryFilter {
-  id: [ID]
-  waveId: ID
+  id: [Int]
+  waveId: Int
 }
 
 type PhaseGroupConnection {
@@ -1401,7 +1401,7 @@ type PhaseGroupConnection {
 A connection between a placement in an origin phase group to a destination seed.
 """
 type Progression {
-  id: ID
+  id: Int
   originOrder: Int
   originPhase: Phase
   originPhaseGroup: PhaseGroup
@@ -1410,7 +1410,7 @@ type Progression {
 
 """A round within a phase group"""
 type Round {
-  id: ID
+  id: Int
 
   """
   If applicable, bestOf is the number of games
@@ -1470,7 +1470,7 @@ enum GameSelectionType {
 
 """Video Stage"""
 type Stage {
-  id: ID
+  id: Int
 
   """Stage name"""
   name: String
@@ -1480,10 +1480,10 @@ type Stage {
 A slot in a set where a seed currently or will eventually exist in order to participate in the set.
 """
 type SetSlot {
-  id: ID
+  id: Int
   entrant: Entrant
 
-  """Pairs with prereqType, is the ID of the prereq."""
+  """Pairs with prereqType, is the Int of the prereq."""
   prereqId: String
 
   """
@@ -1506,7 +1506,7 @@ type SetSlot {
 
 """A league"""
 type League {
-  id: ID
+  id: Int
   addrState: String
   city: String
   countryCode: String
@@ -1620,7 +1620,7 @@ type EventOwnerConnection {
 
 """Name and Gamertag of the owner of an event in a league"""
 type EventOwner {
-  eventId: ID
+  eventId: Int
   email: String
   gamerTag: String
   fullName: String
@@ -1637,16 +1637,16 @@ input LeagueEventsQuery {
 
 input LeagueEventsFilter {
   search: PaginationSearchType
-  pointMappingGroupIds: [ID]
-  tierIds: [ID]
-  userId: ID
+  pointMappingGroupIds: [Int]
+  tierIds: [Int]
+  userId: Int
   upcoming: Boolean
-  leagueEntrantId: ID
+  leagueEntrantId: Int
 }
 
 """Used for league application tiers"""
 type EventTier {
-  id: ID
+  id: Int
 
   """Name of this tier"""
   name: String
@@ -1654,7 +1654,7 @@ type EventTier {
 
 """A videogame"""
 type Videogame {
-  id: ID
+  id: Int
 
   """All characters for this videogame"""
   characters: [Character]
@@ -1666,7 +1666,7 @@ type Videogame {
 
 """A character in a videogame"""
 type Character {
-  id: ID
+  id: Int
   images(type: String): [Image]
 
   """Name of Character"""
@@ -1683,8 +1683,8 @@ input StandingPaginationQuery {
 }
 
 input StandingPageFilter {
-  id: ID
-  ids: [ID]
+  id: Int
+  ids: [Int]
   search: PaginationSearchType
 }
 
@@ -1711,7 +1711,7 @@ input UserLeaguesPaginationQuery {
 }
 
 input UserLeaguesPaginationFilter {
-  videogameId: [ID]
+  videogameId: [Int]
   upcoming: Boolean
   past: Boolean
   search: PaginationSearchType
@@ -1724,7 +1724,7 @@ type LeagueConnection {
 
 """A user's address"""
 type Address {
-  id: ID
+  id: Int
   city: String
   country: String
   countryId: Int
@@ -1745,9 +1745,9 @@ input UserTournamentsPaginationFilter {
   past: Boolean
   upcoming: Boolean
   search: PaginationSearchType
-  videogameId: [ID]
+  videogameId: [Int]
   tournamentView: String
-  excludeId: [ID]
+  excludeId: [Int]
 }
 
 type TournamentConnection {
@@ -1766,11 +1766,11 @@ input LeagueQuery {
 }
 
 input LeaguePageFilter {
-  id: ID
-  ids: [ID]
+  id: Int
+  ids: [Int]
 
-  """ID of the user that owns this league."""
-  ownerId: ID
+  """Int of the user that owns this league."""
+  ownerId: Int
   afterDate: Timestamp
   beforeDate: Timestamp
   computedUpdatedAt: Timestamp
@@ -1782,7 +1782,7 @@ input LeaguePageFilter {
   published: Boolean
   publiclySearchable: Boolean
   upcoming: Boolean
-  videogameIds: [ID]
+  videogameIds: [Int]
 }
 
 enum TournamentPaginationSort {
@@ -1801,7 +1801,7 @@ enum TournamentPaginationSort {
 
 """A shop"""
 type Shop {
-  id: ID
+  id: Int
   levels(query: ShopLevelsQuery): ShopLevelConnection
   messages(query: ShopOrderMessagesQuery): ShopOrderMessageConnection
   name: String
@@ -1824,7 +1824,7 @@ type ShopLevelConnection {
 
 """A shop level"""
 type ShopLevel {
-  id: ID
+  id: Int
   currAmount: Float
   description: String
   goalAmount: Float
@@ -1847,7 +1847,7 @@ type ShopOrderMessageConnection {
 
 """The message and player info for a shop order"""
 type ShopOrderMessage {
-  id: ID
+  id: Int
 
   """The player's gamertag. Returns null if anonymous message type"""
   gamertag: String
@@ -1876,11 +1876,11 @@ input TournamentQuery {
 }
 
 input TournamentPageFilter {
-  id: ID
-  ids: [ID]
+  id: Int
+  ids: [Int]
 
-  """ID of the user that owns this tournament."""
-  ownerId: ID
+  """Int of the user that owns this tournament."""
+  ownerId: Int
 
   """
   If true, filter to only tournaments the currently authed user is an admin of
@@ -1906,7 +1906,7 @@ input TournamentPageFilter {
   hasOnlineEvents: Boolean
   topGames: TopGameFilter
   upcoming: Boolean
-  videogameIds: [ID]
+  videogameIds: [Int]
   sortByScore: Boolean
 }
 
@@ -1935,9 +1935,9 @@ input VideogameQuery {
 }
 
 input VideogamePageFilter {
-  id: [ID]
+  id: [Int]
   name: String
-  forUser: ID
+  forUser: Int
 }
 
 type VideogameConnection {
@@ -1947,36 +1947,36 @@ type VideogameConnection {
 
 type Mutation {
   """Delete a phase by id"""
-  deletePhase(phaseId: ID!): Boolean
+  deletePhase(phaseId: Int!): Boolean
 
   """Delete a station by id"""
-  deleteStation(stationId: ID!): Boolean
+  deleteStation(stationId: Int!): Boolean
 
   """Delete a wave by id"""
-  deleteWave(waveId: ID!): Boolean
+  deleteWave(waveId: Int!): Boolean
 
   """
   Automatically attempt to resolve all schedule conflicts. Returns a list of changed seeds
   """
-  resolveScheduleConflicts(tournamentId: ID!, options: ResolveConflictsOptions): [Seed]
+  resolveScheduleConflicts(tournamentId: Int!, options: ResolveConflictsOptions): [Seed]
 
   """Swap two seed ids in a phase"""
-  swapSeeds(phaseId: ID!, seed1Id: ID!, seed2Id: ID!): [Seed]
+  swapSeeds(phaseId: Int!, seed1Id: Int!, seed2Id: Int!): [Seed]
 
   """Update set of phase groups in a phase"""
   updatePhaseGroups(groupConfigs: [PhaseGroupUpdateInput]!): [PhaseGroup]
 
   """Update the seeding for a phase"""
-  updatePhaseSeeding(phaseId: ID!, seedMapping: [UpdatePhaseSeedInfo]!, options: UpdatePhaseSeedingOptions): Phase
+  updatePhaseSeeding(phaseId: Int!, seedMapping: [UpdatePhaseSeedInfo]!, options: UpdatePhaseSeedingOptions): Phase
 
   """Create or update a Phase"""
-  upsertPhase(phaseId: ID, eventId: ID, payload: PhaseUpsertInput!): Phase
+  upsertPhase(phaseId: Int, eventId: Int, payload: PhaseUpsertInput!): Phase
 
   """Add or update a station by id"""
-  upsertStation(stationId: ID, tournamentId: ID, fields: StationUpsertInput!): Stations
+  upsertStation(stationId: Int, tournamentId: Int, fields: StationUpsertInput!): Stations
 
   """Add or update a wave by id"""
-  upsertWave(waveId: ID, tournamentId: ID, fields: WaveUpsertInput!): Wave
+  upsertWave(waveId: Int, tournamentId: Int, fields: WaveUpsertInput!): Wave
 }
 
 input ResolveConflictsOptions {
@@ -1984,20 +1984,20 @@ input ResolveConflictsOptions {
 }
 
 input ResolveConflictsLockedSeedConfig {
-  eventId: ID!
+  eventId: Int!
   numSeeds: Int!
 }
 
 input PhaseGroupUpdateInput {
-  phaseGroupId: ID!
-  stationId: ID
-  waveId: ID
+  phaseGroupId: Int!
+  stationId: Int
+  waveId: Int
 }
 
 input UpdatePhaseSeedInfo {
-  seedId: ID!
-  seedNum: ID!
-  phaseGroupId: ID
+  seedId: Int!
+  seedNum: Int!
+  phaseGroupId: Int
 }
 
 input UpdatePhaseSeedingOptions {
@@ -2022,7 +2022,7 @@ input PhaseUpsertInput {
 
 input StationUpsertInput {
   number: Int!
-  clusterId: ID
+  clusterId: Int
 }
 
 input WaveUpsertInput {
@@ -2033,12 +2033,12 @@ input WaveUpsertInput {
 
 """A set of actions available for an entity to take"""
 interface ActionSet {
-  id: ID
+  id: Int
 }
 
 """Bracket-specific configuration"""
 interface BracketConfig {
-  id: ID
+  id: Int
   bracketType: BracketType
 }
 
@@ -2062,7 +2062,7 @@ enum Comparator {
 
 """An event-level Team, in the context of some competition"""
 type EventTeam implements Team {
-  id: ID
+  id: Int
 
   """
   Uniquely identifying token for team. Same as the hashed part of the slug
@@ -2078,7 +2078,7 @@ type EventTeam implements Team {
 
 """Global Team"""
 type GlobalTeam implements Team {
-  id: ID
+  id: Int
 
   """
   Uniquely identifying token for team. Same as the hashed part of the slug
@@ -2102,7 +2102,7 @@ type EventTeamConnection {
 
 """Match-level configuration"""
 interface MatchConfig {
-  id: ID
+  id: Int
   bracketType: BracketType
 }
 
@@ -2129,7 +2129,7 @@ enum MatchConfigVerificationMethod {
 """Race specific bracket configuration"""
 type RaceBracketConfig implements BracketConfig {
   automaticEndTime: Timestamp
-  id: ID
+  id: Int
   automaticStartTime: Timestamp
   bracketType: BracketType
   goalTargetComparator: Comparator
@@ -2162,7 +2162,7 @@ enum RaceType {
 
 """Race specific match configuration"""
 type RaceMatchConfig implements MatchConfig {
-  id: ID
+  id: Int
   bracketType: BracketType
 
   """Can players report results?"""
@@ -2177,5 +2177,5 @@ type RaceMatchConfig implements MatchConfig {
 
 """A set of actions available for a team to take"""
 type TeamActionSet implements ActionSet {
-  id: ID
+  id: Int
 }
