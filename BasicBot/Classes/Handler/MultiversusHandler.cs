@@ -201,10 +201,9 @@ namespace BasicBot.Handler
                 var req = await StartGGHandler.Client.GetSetsAndLinkedAccounts.ExecuteAsync(eventId, 1, perPage);
 
                 // Check still admin.
-                if (req.Data.Event.Id == null ||
+                if (category == null || req.Data.Event.Id == null ||
                     req.Data.Event.Tournament.Admins.Where(x => x.Id == req.Data.CurrentUser.Id).Count() != 1)
                 {
-                    // No longer admin.
                     Console.Error.WriteLine("Error occurred updating sets.");
                     // Remove existing sets from memory.
                     if (sets.ContainsKey(eventId))
