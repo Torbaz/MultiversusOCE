@@ -28,7 +28,7 @@ internal class Program
     {
         Console.WriteLine("Hi");
 
-        Multiversus.runningEvents.Add(730596);
+        Multiversus.runningEvents.Add(730596, null);
         Multiversus.UpdateSets();
 
         discordClient = new DiscordSocketClient(new DiscordSocketConfig

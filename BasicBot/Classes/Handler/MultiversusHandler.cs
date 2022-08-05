@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using BasicBot.GraphQL;
 using Discord;
+using Discord.Rest;
 using Discord.WebSocket;
 using static BasicBot.MonarkTypes.Message;
 
@@ -186,24 +187,29 @@ namespace BasicBot.Handler
         }
 
         public static Dictionary<StartID, Dictionary<StartID, Set>> sets = new();
-        public static List<StartID> runningEvents = new();
+        public static Dictionary<StartID, SocketCategoryChannel> runningEvents = new();
 
         public static async void UpdateSets()
         {
             foreach (var e in runningEvents)
             {
+                var eventId = e.Key;
+                var category = e.Value;
+
                 var perPage = 20;
 
-                var req = await StartGGHandler.Client.GetSetsAndLinkedAccounts.ExecuteAsync(e, 1, perPage);
+                var req = await StartGGHandler.Client.GetSetsAndLinkedAccounts.ExecuteAsync(eventId, 1, perPage);
+
                 // Check still admin.
-                if (req.Data.Event.Tournament.Admins.Where(x => x.Id == req.Data.CurrentUser.Id).Count() != 1)
+                if (req.Data.Event.Id == null ||
+                    req.Data.Event.Tournament.Admins.Where(x => x.Id == req.Data.CurrentUser.Id).Count() != 1)
                 {
                     // No longer admin.
-                    Console.Error.WriteLine("No longer admin of tournament.");
+                    Console.Error.WriteLine("Error occurred updating sets.");
                     // Remove existing sets from memory.
-                    if (sets.ContainsKey(e))
+                    if (sets.ContainsKey(eventId))
                     {
-                        sets[e].Clear();
+                        sets[eventId].Clear();
                     }
 
                     break;
@@ -218,9 +224,10 @@ namespace BasicBot.Handler
                     var i = 2;
                     while (true)
                     {
-                        var setsReq = await StartGGHandler.Client.GetSetsAndLinkedAccounts.ExecuteAsync(e, i, perPage);
+                        var setsReq =
+                            await StartGGHandler.Client.GetSetsAndLinkedAccounts.ExecuteAsync(eventId, i, perPage);
                         eventSets.AddRange(setsReq.Data.Event.Sets.Nodes);
-                        if (setsReq.Data.Event.Sets.Nodes.Count != perPage)
+                        if (setsReq.Data.Event.Sets.Nodes.Count != perPage || i == (int)MathF.Ceiling(1000f / perPage))
                             break;
                         i++;
                     }
@@ -231,6 +238,27 @@ namespace BasicBot.Handler
                 // Remove sets from the existing list if they aren't going still (Remove discord too)
                 // Add new sets to the list (Start discord)
                 // Check if games have changed on existing sets (New map selection in discord.)
+
+                if (!sets.ContainsKey(req.Data.Event.Id ?? 0))
+                {
+                    var s = new Dictionary<StartID, Set>();
+                    foreach (var set in eventSets)
+                    {
+                        if (Set.IsInProgress(set))
+                        {
+                            s.Add(set.Id ?? 0, await Set.CreateSet(category, set));
+                        }
+                    }
+
+                    sets.Add(req.Data.Event.Id ?? 0, s);
+                }
+                else
+                {
+                    foreach (var set in eventSets)
+                    {
+                        // if ()
+                    }
+                }
             }
         }
 
@@ -252,9 +280,109 @@ namespace BasicBot.Handler
             public StartID StartId;
             public int CurrentGame;
             public gamething Gamething;
-            public SocketTextChannel Channel;
-            public SocketUser[] Team1;
-            public SocketUser[] Team2;
+            public RestTextChannel Channel;
+            public List<SocketUser> Team1 = new();
+            public List<SocketUser> Team2 = new();
+
+            public static bool IsInProgress(IGetSetsAndLinkedAccounts_Event_Sets_Nodes setInfo)
+            {
+                if (setInfo.Id == null)
+                    return false;
+
+                if (setInfo.Slots.Count != 2)
+                    return false;
+
+
+                foreach (var slot in setInfo.Slots)
+                {
+                    if (slot.Entrant == null)
+                        return false;
+                }
+
+                return true;
+            }
+
+
+            public static async Task<Set> CreateSet(SocketCategoryChannel category,
+                IGetSetsAndLinkedAccounts_Event_Sets_Nodes setInfo)
+            {
+                if (setInfo.Id == null)
+                {
+                    throw new NullReferenceException("Set id was null.");
+                }
+
+                var set = new Set();
+                set.StartId = setInfo.Id ?? 0;
+                set.CurrentGame = 0;
+
+                // Get the discord users out of the set info.
+                for (var i = 0; i < 2; i++)
+                {
+                    foreach (var participant in setInfo.Slots[i].Entrant.Participants)
+                    {
+                        foreach (var connection in participant.RequiredConnections)
+                        {
+                            if (connection.Type != AuthorizationType.Discord) continue;
+
+                            if (ulong.TryParse(connection.Id,
+                                    out var id))
+                            {
+                                SocketUser user = category.Guild.GetUser(id);
+                                if (i == 0)
+                                    set.Team1.Add(user);
+                                else
+                                    set.Team2.Add(user);
+                            }
+                        }
+                    }
+                }
+
+                var channel = await category.Guild.CreateTextChannelAsync(
+                    $"{setInfo.Slots[0].Entrant.Name} vs {setInfo.Slots[1].Entrant.Name}",
+                    x =>
+                    {
+                        x.CategoryId = category.Id;
+
+                        // Set permission overrides.
+                        var allowedPermissions =
+                            new OverwritePermissions(viewChannel: PermValue.Allow, sendMessages: PermValue.Allow);
+                        var deniedPermissions =
+                            new OverwritePermissions(viewChannel: PermValue.Deny, sendMessages: PermValue.Deny);
+
+                        var overrides = new List<Overwrite>
+                        {
+                            new(category.Guild.EveryoneRole.Id, PermissionTarget.Role,
+                                deniedPermissions)
+                        };
+
+                        foreach (var user in set.Team1)
+                        {
+                            overrides.Add(new Overwrite(user.Id, PermissionTarget.User, allowedPermissions));
+                        }
+
+                        foreach (var user in set.Team2)
+                        {
+                            overrides.Add(new Overwrite(user.Id, PermissionTarget.User, allowedPermissions));
+                        }
+
+                        x.PermissionOverwrites = overrides;
+                    });
+
+                set.Channel = channel;
+
+                var _msg = new MonarkMessage();
+                _msg.AddEmbed(new EmbedBuilder().WithTitle("Building..."));
+                var msg = await _msg.SendMessage(channel);
+
+                var gamething = new gamething(set.Team1[0], set.Team2[0], msg,
+                    category.Guild.Id);
+
+                things[msg.Id] = gamething;
+
+                gamething.BuildFirst().UpdateMessage(msg);
+
+                return set;
+            }
         }
     }
 }
