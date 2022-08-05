@@ -8,7 +8,6 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
-using StrawberryShake;
 using static BasicBot.Handler.Settings;
 
 #endregion
@@ -29,52 +28,10 @@ internal class Program
     {
         Console.WriteLine("Hi");
 
-        var currentUserRequest = await StartGGHandler.Client.GetCurrentUser.ExecuteAsync();
+        Multiversus.runningEvents.Add(730596);
+        Multiversus.UpdateSets();
 
-        var result =
-            await StartGGHandler.Client.GetTournamentAndAdmins.ExecuteAsync(
-                "tournament/multiversus-oceania-plasmatic-cup");
-
-        result.EnsureNoErrors();
-
-        if (result.Data == null)
-            Console.WriteLine("Error, null data.");
-        else if (result.Data.Tournament == null)
-            Console.WriteLine("Null tournament");
-        else if (result.Data.Tournament.Admins == null)
-            Console.WriteLine("Null admins");
-        else
-        {
-            var isAdmin = false;
-            foreach (var admin in result.Data.Tournament.Admins)
-            {
-                if (admin.Id == currentUserRequest.Data.CurrentUser.Id)
-                {
-                    isAdmin = true;
-                    break;
-                }
-            }
-
-            if (isAdmin)
-            {
-                var events =
-                    await StartGGHandler.Client.GetTournamentEvents.ExecuteAsync(
-                        "tournament/multiversus-oceania-plasmatic-cup");
-
-                foreach (var e in events.Data.Tournament.Events)
-                {
-                    var setsResult =
-                        await StartGGHandler.Client.GetSetsAndLinkedAccounts.ExecuteAsync(e.Id.ToString(), 1, 10);
-                    Console.WriteLine(setsResult.Data.Event.Sets.Nodes.Count);
-                }
-            }
-            else
-            {
-                Console.WriteLine("Not admin");
-            }
-        }
-
-        discordClient = new DiscordSocketClient(new DiscordSocketConfig()
+        discordClient = new DiscordSocketClient(new DiscordSocketConfig
             { LogLevel = LogSeverity.Verbose, GatewayIntents = GatewayIntents.All, AlwaysDownloadUsers = true });
 
 

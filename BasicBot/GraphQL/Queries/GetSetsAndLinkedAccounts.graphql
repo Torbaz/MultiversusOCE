@@ -1,9 +1,20 @@
-query GetSetsAndLinkedAccounts($eventId: ID, $page: Int,$perPage: Int){
+query GetSetsAndLinkedAccounts( $eventId: ID, $page: Int,$perPage: Int){
+    currentUser {
+        id
+    }
     event(id: $eventId){
-        sets(page: $page, perPage: $perPage){
+        id
+        tournament {
+            admins
+            {
+                id
+            }
+        }
+        sets(page: $page, perPage: $perPage, filters: { showByes: false, hideEmpty: true }){
             nodes {
                 id
                 totalGames
+                state
                 games {
                     winnerId
                     orderNum

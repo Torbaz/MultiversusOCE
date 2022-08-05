@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BasicBot.GraphQL;
 using Discord;
 using Discord.WebSocket;
 using static BasicBot.MonarkTypes.Message;
@@ -18,7 +19,6 @@ namespace BasicBot.Handler
                 return things[thing];
             return null;
         }
-
 
         public class gamething
         {
@@ -183,6 +183,78 @@ namespace BasicBot.Handler
 
                 return options;
             }
+        }
+
+        public static Dictionary<StartID, Dictionary<StartID, Set>> sets = new();
+        public static List<StartID> runningEvents = new();
+
+        public static async void UpdateSets()
+        {
+            foreach (var e in runningEvents)
+            {
+                var perPage = 20;
+
+                var req = await StartGGHandler.Client.GetSetsAndLinkedAccounts.ExecuteAsync(e, 1, perPage);
+                // Check still admin.
+                if (req.Data.Event.Tournament.Admins.Where(x => x.Id == req.Data.CurrentUser.Id).Count() != 1)
+                {
+                    // No longer admin.
+                    Console.Error.WriteLine("No longer admin of tournament.");
+                    // Remove existing sets from memory.
+                    if (sets.ContainsKey(e))
+                    {
+                        sets[e].Clear();
+                    }
+
+                    break;
+                }
+
+                // Get Sets
+                List<IGetSetsAndLinkedAccounts_Event_Sets_Nodes> eventSets = new();
+                eventSets.AddRange(req.Data.Event.Sets.Nodes);
+                // Get all the sets.
+                if (eventSets.Count == perPage)
+                {
+                    var i = 2;
+                    while (true)
+                    {
+                        var setsReq = await StartGGHandler.Client.GetSetsAndLinkedAccounts.ExecuteAsync(e, i, perPage);
+                        eventSets.AddRange(setsReq.Data.Event.Sets.Nodes);
+                        if (setsReq.Data.Event.Sets.Nodes.Count != perPage)
+                            break;
+                        i++;
+                    }
+                }
+
+                Console.WriteLine(eventSets.Count);
+
+                // Remove sets from the existing list if they aren't going still (Remove discord too)
+                // Add new sets to the list (Start discord)
+                // Check if games have changed on existing sets (New map selection in discord.)
+            }
+        }
+
+        public static Set GetSet(StartID eventId, StartID setId)
+        {
+            if (sets.ContainsKey(eventId))
+            {
+                if (sets[eventId].ContainsKey(setId))
+                {
+                    return sets[eventId][setId];
+                }
+            }
+
+            return null;
+        }
+
+        public class Set
+        {
+            public StartID StartId;
+            public int CurrentGame;
+            public gamething Gamething;
+            public SocketTextChannel Channel;
+            public SocketUser[] Team1;
+            public SocketUser[] Team2;
         }
     }
 }

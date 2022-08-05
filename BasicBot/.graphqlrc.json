@@ -12,7 +12,7 @@
       "useSingleFile": true,
       "requestStrategy": "Default",
       "outputDirectoryName": "Generated",
-      "noStore": false,
+      "noStore": true,
       "emitGeneratedCode": false,
       "razorComponents": false,
       "records": {
