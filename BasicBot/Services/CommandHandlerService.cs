@@ -70,7 +70,7 @@ namespace BasicBot.Services
         {
             try
             {
-                await interactionService.RegisterCommandsToGuildAsync(arg.Id, true);
+                await interactionService.RegisterCommandsToGuildAsync(arg.Id, false);
             }
             catch (Exception ex)
             { 
